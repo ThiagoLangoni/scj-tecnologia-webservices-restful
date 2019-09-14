@@ -30,7 +30,6 @@ public class ProductResourceClientTest {
         List<Product> result = products.search();
 
         assertNotNull(result);
-
     }
 
     @Test
@@ -38,17 +37,18 @@ public class ProductResourceClientTest {
         List<Product> result = products.search("grampeador");
 
         assertNotNull(result);
-
     }
 
     @Test
     public void test2Create() throws Exception {
-        Response response = products.create(mockProduct);
+    
+    	Response response = products.create(mockProduct);
         String location = (String) response.headers().get("Location").toArray()[0];
         String[] aux = location.split("/");
         Long id = Long.valueOf(aux[aux.length - 1]);
         mockProduct.setId(id);
         assertNotNull(id);
+
     }
 
     @Test

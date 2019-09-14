@@ -1,47 +1,58 @@
 package fiap.scj.modulo1.interfaces;
 
-import fiap.scj.modulo1.application.ProductService;
-import fiap.scj.modulo1.domain.Product;
-import fiap.scj.modulo1.infrastructure.ProductServiceException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import java.net.URI;
 import java.util.List;
 
-import static fiap.scj.modulo1.infrastructure.ProductServiceException.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import fiap.scj.modulo1.application.ProductDetailsService;
+import fiap.scj.modulo1.domain.ProductDetails;
+import fiap.scj.modulo1.infrastructure.ProductDetailsServiceException;
+import lombok.extern.slf4j.Slf4j;
+
+import static fiap.scj.modulo1.infrastructure.ProductServiceException.CREATE_OPERATION_ERROR;
+import static fiap.scj.modulo1.infrastructure.ProductServiceException.DELETE_OPERATION_ERROR;
+import static fiap.scj.modulo1.infrastructure.ProductServiceException.PRODUCT_NOT_FOUND_ERROR;
+import static fiap.scj.modulo1.infrastructure.ProductServiceException.RETRIEVE_OPERATION_ERROR;
+import static fiap.scj.modulo1.infrastructure.ProductServiceException.SEARCH_OPERATION_ERROR;
+import static fiap.scj.modulo1.infrastructure.ProductServiceException.UPDATE_OPERATION_ERROR;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/products/{productId}/details")
 @Slf4j
-public class ProductResource {
+public class ProductDetailsResource {
 
-    private final ProductService service;
+    private final ProductDetailsService service;
 
     @Autowired
-    public ProductResource(ProductService service) {
+    public ProductDetailsResource(ProductDetailsService service) {
         this.service = service;
     }
 
     @RequestMapping(method = RequestMethod.GET)
     @ResponseStatus(code = HttpStatus.OK)
-    public List<Product> search(@RequestParam(required = false) String keyword) {
+    public List<ProductDetails> search(@PathVariable("productId") Long id) {
         log.info("Processing search request");
         try {
-            List<Product> result = service.search(keyword);
+            List<ProductDetails> result = service.search(id);
             return result;
-        } catch (ProductServiceException e) {
+        } catch (ProductDetailsServiceException e) {
             log.error("Error processing search request", e);
             throw exceptionHandler(e);
         }
     }
 
-    private ResponseStatusException exceptionHandler(ProductServiceException e) {
+    private ResponseStatusException exceptionHandler(ProductDetailsServiceException e) {
         if (e.getOperation() == null || e.getOperation().isEmpty()) {
             return new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -64,14 +75,14 @@ public class ProductResource {
 
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<Void> create(@RequestBody Product product) throws ProductServiceException {
+    public ResponseEntity<Void> create(@RequestBody ProductDetails details) throws ProductDetailsServiceException {
         log.info("Processing create request");
         try {
-            Product result = service.create(product);
+        	ProductDetails result = service.create(details);
             URI location = ServletUriComponentsBuilder.fromCurrentRequest().path(
                     "/{id}").buildAndExpand(result.getId()).toUri();
             return ResponseEntity.created(location).build();
-        } catch (ProductServiceException e) {
+        } catch (ProductDetailsServiceException e) {
             log.error("Error processing create request", e);
             throw exceptionHandler(e);
         }
@@ -80,11 +91,11 @@ public class ProductResource {
 
     @RequestMapping(method = RequestMethod.GET, path = "/{id}")
     @ResponseStatus(code = HttpStatus.OK)
-    public Product retrieve(@PathVariable Long id) throws ProductServiceException {
+    public ProductDetails retrieve(@PathVariable Long id) throws ProductDetailsServiceException {
         log.info("Processing retrieve request");
         try {
             return service.retrieve(id);
-        } catch (ProductServiceException e) {
+        } catch (ProductDetailsServiceException e) {
             log.error("Error processing retrieve request", e);
             throw exceptionHandler(e);
         }
@@ -93,11 +104,11 @@ public class ProductResource {
 
     @RequestMapping(method = RequestMethod.PUT, path = "/{id}")
     @ResponseStatus(code = HttpStatus.OK)
-    public Product update(@PathVariable Long id, @RequestBody Product product) throws ProductServiceException {
+    public ProductDetails update(@PathVariable Long id, @RequestBody ProductDetails product) throws ProductDetailsServiceException {
         log.info("Processing update request");
         try {
             return service.update(id, product);
-        } catch (ProductServiceException e) {
+        } catch (ProductDetailsServiceException e) {
             log.error("Error processing update request", e);
             throw exceptionHandler(e);
         }
@@ -106,14 +117,13 @@ public class ProductResource {
 
     @RequestMapping(method = RequestMethod.DELETE, path = "/{id}")
     @ResponseStatus(code = HttpStatus.ACCEPTED)
-    public void delete(@PathVariable Long id) throws ProductServiceException {
+    public void delete(@PathVariable Long id) throws ProductDetailsServiceException {
         log.info("Processing delete request");
         try {
             service.delete(id);
-        } catch (ProductServiceException e) {
+        } catch (ProductDetailsServiceException e) {
             log.error("Error processing delete request", e);
             throw exceptionHandler(e);
         }
     }
-
 }
